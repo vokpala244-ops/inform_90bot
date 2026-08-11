@@ -17,8 +17,8 @@ if not TOKEN:
     logger.error("BOT_TOKEN environment variable not set!")
     raise ValueError("BOT_TOKEN is required")
 
-# Image file path
-IMAGE_PATH = "paisa_base_promo.png"
+# IMPORTANT: Replace this with your actual GitHub raw URL
+IMAGE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/paisa_base_promo.jpg"
 
 # Configuration
 REGISTER_URL = "https://wallet.paisa-base.com/register?inviteCode=phar6p"
@@ -48,26 +48,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     
     try:
-        # Send the promotional image from file
-        with open(IMAGE_PATH, 'rb') as photo:
-            await update.message.reply_photo(
-                photo=photo,
-                caption="💎 **Paisa Base** - Maximize Your Earnings!\n\n"
-                        "💪 Start your journey with Paisa Base today!",
-                reply_markup=reply_markup,
-                parse_mode='Markdown'
-            )
-    except FileNotFoundError:
-        logger.error(f"Image file not found: {IMAGE_PATH}")
-        # Fallback: try to generate the image on the fly
+        # Send the promotional image using URL
+        await update.message.reply_photo(
+            photo=IMAGE_URL,
+            caption="💎 **Paisa Base** - Maximize Your Earnings!\n\n"
+                    "💪 Start your journey with Paisa Base today!",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+        logger.info(f"✅ Image sent successfully to {user.first_name}")
+        
+    except Exception as e:
+        logger.error(f"❌ Error sending image: {e}")
+        # Fallback: send just the text message
         await update.message.reply_text(
-            "⚠️ Image not found. Please contact support.",
+            f"⚠️ Could not load image. Please use the buttons below:",
             reply_markup=reply_markup
         )
-        return
-    except Exception as e:
-        logger.error(f"Error sending image: {e}")
-        await update.message.reply_text(welcome_message, reply_markup=reply_markup)
         return
     
     # Send welcome message with buttons
