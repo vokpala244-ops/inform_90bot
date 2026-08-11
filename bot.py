@@ -17,12 +17,8 @@ if not TOKEN:
     logger.error("BOT_TOKEN environment variable not set!")
     raise ValueError("BOT_TOKEN is required")
 
-# Use the WhatsApp image as the promotional image
-# You need to upload this image to a hosting service and get the URL
-# For now, I'll show you how to use it as a local file
-IMAGE_PATH = "WhatsApp Image 2026-08-11 at 19.19.31.jpeg"  # Local file
-# OR use a hosted URL:
-# IMAGE_URL = "https://your-image-hosting-url.com/paisa-base-promo.jpg"
+# Image file path
+IMAGE_PATH = "paisa_base_promo.png"
 
 # Configuration
 REGISTER_URL = "https://wallet.paisa-base.com/register?inviteCode=phar6p"
@@ -52,37 +48,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     
     try:
-        # Send the promotional image using local file
+        # Send the promotional image from file
         with open(IMAGE_PATH, 'rb') as photo:
             await update.message.reply_photo(
                 photo=photo,
-                caption="💎 Paisa Base - Maximize Your Earnings!\n\n"
-                        "📈 4.5% ON INR\n"
-                        "💰 USDT 108\n"
-                        "⚡ FAST SALES\n"
-                        "🕐 24/7 Customer Care\n"
-                        "🔓 Set Your Own Limit",
-                reply_markup=reply_markup
+                caption="💎 **Paisa Base** - Maximize Your Earnings!\n\n"
+                        "💪 Start your journey with Paisa Base today!",
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
             )
     except FileNotFoundError:
         logger.error(f"Image file not found: {IMAGE_PATH}")
-        # Fallback: try to use URL if available
-        try:
-            IMAGE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/WhatsApp%20Image%202026-08-11%20at%2019.19.31.jpeg"
-            await update.message.reply_photo(
-                photo=IMAGE_URL,
-                caption="💎 Paisa Base - Maximize Your Earnings!\n\n"
-                        "📈 4.5% ON INR\n"
-                        "💰 USDT 108\n"
-                        "⚡ FAST SALES\n"
-                        "🕐 24/7 Customer Care\n"
-                        "🔓 Set Your Own Limit",
-                reply_markup=reply_markup
-            )
-        except Exception as e:
-            logger.error(f"Error sending image from URL: {e}")
-            await update.message.reply_text(welcome_message, reply_markup=reply_markup)
-            return
+        # Fallback: try to generate the image on the fly
+        await update.message.reply_text(
+            "⚠️ Image not found. Please contact support.",
+            reply_markup=reply_markup
+        )
+        return
     except Exception as e:
         logger.error(f"Error sending image: {e}")
         await update.message.reply_text(welcome_message, reply_markup=reply_markup)
@@ -143,7 +125,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
     
     elif choice == 'menu':
-        # Return to main menu
         keyboard = [
             [InlineKeyboardButton("📝 Register Now", callback_data='register')],
             [InlineKeyboardButton("📢 Join Official Channel", callback_data='channel')],
@@ -173,18 +154,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 def main() -> None:
     """Start the bot."""
-    # Create the Application
     application = Application.builder().token(TOKEN).build()
-    
-    # Register command handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    
-    # Register callback query handler for buttons
     application.add_handler(CallbackQueryHandler(button_callback))
     
-    # Start the Bot
-    logger.info("Bot is starting with Paisa Base promotional image...")
+    logger.info("🤖 Paisa Base Bot is starting...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
