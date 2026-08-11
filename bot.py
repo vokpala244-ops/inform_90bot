@@ -17,8 +17,9 @@ if not TOKEN:
     logger.error("BOT_TOKEN environment variable not set!")
     raise ValueError("BOT_TOKEN is required")
 
-# IMPORTANT: Replace this with your actual GitHub raw URL
-IMAGE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/paisa_base_promo.jpg"
+# IMPORTANT: Use the EXACT filename from your GitHub repository
+# Your image is: palsa_base_promo.jpg.jpeg
+IMAGE_URL = "https://raw.githubusercontent.com/vokpala244-ops/inform_90bot/main/palsa_base_promo.jpg.jpeg"
 
 # Configuration
 REGISTER_URL = "https://wallet.paisa-base.com/register?inviteCode=phar6p"
@@ -48,11 +49,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     
     try:
-        # Send the promotional image using URL
+        # Send the promotional image using the URL
         await update.message.reply_photo(
             photo=IMAGE_URL,
-            caption="💎 **Paisa Base** - Maximize Your Earnings!\n\n"
-                    "💪 Start your journey with Paisa Base today!",
+            caption="💎 **Paisa Base** - Maximize Your Earnings!",
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
@@ -60,9 +60,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
     except Exception as e:
         logger.error(f"❌ Error sending image: {e}")
-        # Fallback: send just the text message
+        # If image fails, send just the text message
         await update.message.reply_text(
-            f"⚠️ Could not load image. Please use the buttons below:",
+            f"🚀 Welcome to Paisa Base, {user.first_name}!\n\n"
+            f"Use the buttons below to get started:",
             reply_markup=reply_markup
         )
         return
@@ -157,6 +158,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(button_callback))
     
     logger.info("🤖 Paisa Base Bot is starting...")
+    logger.info(f"📸 Using image URL: {IMAGE_URL}")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
