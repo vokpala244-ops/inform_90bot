@@ -1,6 +1,5 @@
 import os
 import logging
-import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
@@ -18,8 +17,8 @@ if not TOKEN:
     logger.error("BOT_TOKEN environment variable not set!")
     raise ValueError("BOT_TOKEN is required")
 
-# Image URL - replace with your image URL
-IMAGE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/paisa_base_promo.jpg"
+# Image URL - REPLACE THIS WITH YOUR ACTUAL IMAGE URL
+IMAGE_URL = "https://i.imgur.com/your-image.jpg"  # Change this!
 
 # Configuration
 REGISTER_URL = "https://wallet.paisa-base.com/register?inviteCode=phar6p"
@@ -48,8 +47,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"Please select an option below: ⬇️"
     )
     
+    # Send promotional image first
     try:
-        # Send promotional image first
         await update.message.reply_photo(
             photo=IMAGE_URL,
             caption="💎 Paisa Base - Maximize Your Earnings!",
@@ -57,7 +56,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
     except Exception as e:
         logger.error(f"Error sending image: {e}")
-        # If image fails, send text message
+        # Fallback: send just text
         await update.message.reply_text(welcome_message, reply_markup=reply_markup)
         return
     
@@ -102,7 +101,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     
     elif choice == 'support':
         keyboard = [
-            [InlineKeyboardButton("💬 Contact Support", url=f"https://t.me/jetlee261")],
+            [InlineKeyboardButton("💬 Contact Support", url="https://t.me/jetlee261")],
             [InlineKeyboardButton("🔙 Back to Menu", callback_data='menu')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -144,11 +143,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Log errors."""
-    logger.error(f"Update {update} caused error {context.error}")
-
-async def main() -> None:
+def main() -> None:
     """Start the bot."""
     # Create the Application
     application = Application.builder().token(TOKEN).build()
@@ -160,18 +155,9 @@ async def main() -> None:
     # Register callback query handler for buttons
     application.add_handler(CallbackQueryHandler(button_callback))
     
-    # Register error handler
-    application.add_error_handler(error_handler)
-    
     # Start the Bot
-    logger.info("Starting bot...")
-    await application.run_polling(allowed_updates=Update.ALL_TYPES)
+    logger.info("Bot is starting...")
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("Bot stopped by user")
-    except Exception as e:
-        logger.error(f"Bot crashed: {e}")
-        raise
+    main()
