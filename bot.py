@@ -17,8 +17,12 @@ if not TOKEN:
     logger.error("BOT_TOKEN environment variable not set!")
     raise ValueError("BOT_TOKEN is required")
 
-# Image URL - REPLACE THIS WITH YOUR ACTUAL IMAGE URL
-IMAGE_URL = "https://i.imgur.com/your-image.jpg"  # Change this!
+# Use the WhatsApp image as the promotional image
+# You need to upload this image to a hosting service and get the URL
+# For now, I'll show you how to use it as a local file
+IMAGE_PATH = "WhatsApp Image 2026-08-11 at 19.19.31.jpeg"  # Local file
+# OR use a hosted URL:
+# IMAGE_URL = "https://your-image-hosting-url.com/paisa-base-promo.jpg"
 
 # Configuration
 REGISTER_URL = "https://wallet.paisa-base.com/register?inviteCode=phar6p"
@@ -47,16 +51,40 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"Please select an option below: ⬇️"
     )
     
-    # Send promotional image first
     try:
-        await update.message.reply_photo(
-            photo=IMAGE_URL,
-            caption="💎 Paisa Base - Maximize Your Earnings!",
-            reply_markup=reply_markup
-        )
+        # Send the promotional image using local file
+        with open(IMAGE_PATH, 'rb') as photo:
+            await update.message.reply_photo(
+                photo=photo,
+                caption="💎 Paisa Base - Maximize Your Earnings!\n\n"
+                        "📈 4.5% ON INR\n"
+                        "💰 USDT 108\n"
+                        "⚡ FAST SALES\n"
+                        "🕐 24/7 Customer Care\n"
+                        "🔓 Set Your Own Limit",
+                reply_markup=reply_markup
+            )
+    except FileNotFoundError:
+        logger.error(f"Image file not found: {IMAGE_PATH}")
+        # Fallback: try to use URL if available
+        try:
+            IMAGE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/WhatsApp%20Image%202026-08-11%20at%2019.19.31.jpeg"
+            await update.message.reply_photo(
+                photo=IMAGE_URL,
+                caption="💎 Paisa Base - Maximize Your Earnings!\n\n"
+                        "📈 4.5% ON INR\n"
+                        "💰 USDT 108\n"
+                        "⚡ FAST SALES\n"
+                        "🕐 24/7 Customer Care\n"
+                        "🔓 Set Your Own Limit",
+                reply_markup=reply_markup
+            )
+        except Exception as e:
+            logger.error(f"Error sending image from URL: {e}")
+            await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+            return
     except Exception as e:
         logger.error(f"Error sending image: {e}")
-        # Fallback: send just text
         await update.message.reply_text(welcome_message, reply_markup=reply_markup)
         return
     
@@ -156,7 +184,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(button_callback))
     
     # Start the Bot
-    logger.info("Bot is starting...")
+    logger.info("Bot is starting with Paisa Base promotional image...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
