@@ -1,1 +1,1 @@
-worker: python bot.py
+worker: python pre_deploy.py && python bot.py
