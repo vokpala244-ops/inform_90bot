@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
@@ -13,20 +14,23 @@ logger = logging.getLogger(__name__)
 # Bot token from environment variable
 TOKEN = os.environ.get('BOT_TOKEN')
 
-# Image path - using a direct URL or local path
-# Since we're deploying on Railway, we'll use a URL
+if not TOKEN:
+    logger.error("BOT_TOKEN environment variable not set!")
+    raise ValueError("BOT_TOKEN is required")
+
+# Image URL - replace with your image URL
 IMAGE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/paisa_base_promo.jpg"
 
-# Buttons configuration
+# Configuration
 REGISTER_URL = "https://wallet.paisa-base.com/register?inviteCode=phar6p"
 CHANNEL_URL = "https://t.me/+oTUFYl-kubM1OTU1"
 SUPPORT_CONTACT = "@jetlee261"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message with the promotional image and welcome message when the command /start is issued."""
+    """Send a message with the promotional image and welcome message."""
     user = update.effective_user
     
-    # Create inline keyboard with buttons
+    # Create inline keyboard
     keyboard = [
         [InlineKeyboardButton("📝 Register Now", callback_data='register')],
         [InlineKeyboardButton("📢 Join Official Channel", callback_data='channel')],
@@ -44,8 +48,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"Please select an option below: ⬇️"
     )
     
-    # Send the promotional image first
     try:
+        # Send promotional image first
         await update.message.reply_photo(
             photo=IMAGE_URL,
             caption="💎 Paisa Base - Maximize Your Earnings!",
@@ -53,25 +57,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
     except Exception as e:
         logger.error(f"Error sending image: {e}")
-        # If image fails, send just the text message
-        await update.message.reply_text(
-            welcome_message,
-            reply_markup=reply_markup
-        )
+        # If image fails, send text message
+        await update.message.reply_text(welcome_message, reply_markup=reply_markup)
         return
     
-    # Send the welcome message with buttons
-    await update.message.reply_text(
-        welcome_message,
-        reply_markup=reply_markup
-    )
+    # Send welcome message with buttons
+    await update.message.reply_text(welcome_message, reply_markup=reply_markup)
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle button presses."""
     query = update.callback_query
     await query.answer()
     
-    # Get the user's choice
     choice = query.data
     
     if choice == 'register':
@@ -147,20 +144,34 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
-def main() -> None:
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log errors."""
+    logger.error(f"Update {update} caused error {context.error}")
+
+async def main() -> None:
     """Start the bot."""
     # Create the Application
     application = Application.builder().token(TOKEN).build()
-
+    
     # Register command handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     
     # Register callback query handler for buttons
     application.add_handler(CallbackQueryHandler(button_callback))
-
+    
+    # Register error handler
+    application.add_error_handler(error_handler)
+    
     # Start the Bot
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    logger.info("Starting bot...")
+    await application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
-    main()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Bot stopped by user")
+    except Exception as e:
+        logger.error(f"Bot crashed: {e}")
+        raise
